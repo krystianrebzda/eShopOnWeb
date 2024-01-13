@@ -29,7 +29,7 @@ builder.Services.AddEndpoints();
 
 // Use to force loading of appsettings.json of test project
 builder.Configuration.AddConfigurationFile("appsettings.test.json");
-//builder.Logging.AddConsole();
+builder.Logging.AddConsole();
 
 Microsoft.eShopWeb.Infrastructure.Dependencies.ConfigureServices(builder.Configuration, builder.Services);
 
@@ -122,16 +122,7 @@ builder.Services.AddSwaggerGen(c =>
             });
 });
 
-var conString = builder.Configuration["ApplicationInsights:ConnectionString"];
-
-builder.Logging.AddApplicationInsights(
-        configureTelemetryConfiguration: (config) =>
-            config.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"],
-            configureApplicationInsightsLoggerOptions: (options) => 
-            {
-                options.TrackExceptionsAsExceptionTelemetry = false;
-            }
-    );
+builder.Services.AddApplicationInsightsTelemetry(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]);
 
 var app = builder.Build();
 
@@ -187,6 +178,7 @@ app.MapControllers();
 app.MapEndpoints();
 
 app.Logger.LogInformation("LAUNCHING PublicApi");
+
 app.Run();
 
 public partial class Program { }

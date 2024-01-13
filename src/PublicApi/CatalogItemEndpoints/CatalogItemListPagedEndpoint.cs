@@ -74,6 +74,9 @@ public class CatalogItemListPagedEndpoint : IEndpoint<IResult, ListPagedCatalogI
             response.PageCount = totalItems > 0 ? 1 : 0;
         }
 
+        var ex = new Exception("Cannot move further");
+        _logger.LogError(ex, "Throw exception!");
+
         return Results.Ok(response);
     }
 }
