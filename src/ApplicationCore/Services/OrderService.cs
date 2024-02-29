@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
@@ -49,5 +52,11 @@ public class OrderService : IOrderService
         var order = new Order(basket.BuyerId, shippingAddress, items);
 
         await _orderRepository.AddAsync(order);
+
+        var httpClient = new HttpClient();
+
+        var response = await httpClient.PostAsJsonAsync("http://host.docker.internal:7249/api/OrderItemsReserver", order);
+
+        var responseString = response.Content.ReadAsStringAsync();
     }
 }
