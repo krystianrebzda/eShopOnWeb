@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
@@ -49,5 +52,28 @@ public class OrderService : IOrderService
         var order = new Order(basket.BuyerId, shippingAddress, items);
 
         await _orderRepository.AddAsync(order);
+
+        var orderDetails = new OrderDetails
+        {
+            BuyerId = basket.BuyerId,
+            ShipToAddress = shippingAddress,
+            OrderItems = items,
+            TotalPrice = order.Total()
+        };
+
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("x-functions-key", "N3aqHzMYPhsCGbpZ_ZZiZLJnjZ3lz7ocajJVmE9FYVLyAzFu9iwBFA==");
+
+        var response = await httpClient.PostAsJsonAsync("https://cloudxcosmosdbfunction.azurewebsites.net/api/DeliveryOrderProcessorFunction", order);
+
+        var responseString = response.Content.ReadAsStringAsync();
+    }
+
+    private record OrderDetails
+    {
+        public required string BuyerId { get; init; }
+        public required Address ShipToAddress { get; init; }
+        public required IReadOnlyCollection<OrderItem> OrderItems { get; init; }
+        public required decimal TotalPrice { get; init; }
     }
 }
