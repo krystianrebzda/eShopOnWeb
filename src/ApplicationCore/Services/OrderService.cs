@@ -1,6 +1,9 @@
 ﻿using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
+using Azure.Messaging;
+using Azure.Messaging.ServiceBus;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
 using Microsoft.eShopWeb.ApplicationCore.Entities.BasketAggregate;
 using Microsoft.eShopWeb.ApplicationCore.Entities.OrderAggregate;
@@ -49,5 +52,21 @@ public class OrderService : IOrderService
         var order = new Order(basket.BuyerId, shippingAddress, items);
 
         await _orderRepository.AddAsync(order);
+
+        var connectionString = "connString";
+        var queueName = "deliveryorder";
+
+        // Create a ServiceBusClient object using the connection string to the namespace.
+        await using var client = new ServiceBusClient(connectionString);
+
+        // Create a ServiceBusSender object by invoking the CreateSender method on the ServiceBusClient object, and specifying the queue name. 
+        var sender = client.CreateSender(queueName);
+
+        var messageContent = JsonSerializer.Serialize(order);
+
+        var message = new ServiceBusMessage(messageContent);
+
+        // Send the message to the queue.
+        await sender.SendMessageAsync(message);
     }
 }
